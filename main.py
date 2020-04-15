@@ -32,6 +32,7 @@ def main(args):
 		books = pd.read_csv(args.url)
 	except IOError:
 		print(args.url, "not found")
+		sys.exit()
 		
 	books.to_csv('table.csv')
 
@@ -60,7 +61,8 @@ def main(args):
 				try:
 					open(output_file, 'wb').write(myfile.content)
 				except OSError: 
-					print("Error: filename appears incorrect.")
+
+					print("Error: filename appears incorrect: ", output_file)
 			
 	print('Download finished.')
 
