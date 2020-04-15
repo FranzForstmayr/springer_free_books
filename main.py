@@ -27,14 +27,13 @@ def main(args):
 
 	if not os.path.exists(folder):
 		os.mkdir(folder)
-		
-	if not os.path.exists(args.url):
-		books = pd.read_csv(args.url)
 
-		# save table:
-		books.to_csv('table.csv')
-	else:
-		books = pd.read_csv('table.csv', index_col=None, header=None)  
+	try:
+		books = pd.read_csv(args.url)
+	except IOError:
+		print(args.url, "not found")
+		
+	books.to_csv('table.csv')
 
 	# debug:
 	# books = books.head()
@@ -61,7 +60,7 @@ def main(args):
 				try:
 					open(output_file, 'wb').write(myfile.content)
 				except OSError: 
-					print("Error: filename is appears incorrect.")
+					print("Error: filename appears incorrect.")
 			
 	print('Download finished.')
 
