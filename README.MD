@@ -1,18 +1,8 @@
-## Python script to download all Springer books released for free during the 2020 COVID-19 quarantine
+## Python script to download all Springer books released for free during the 2020 COVID-19 quarantine and open Access in general
 
 ### Usage
 
-Just run the script in the desired folder. It will automatically create a /download/ subfolder and will categorize the books acording the subject.
-
-If you want to mannually set a folder to download, insert `folder = 'C:/desired_folder/'` in line 11 in main.py.
-
-The books are now organized in sub folders according to the subject ("English Package Name" column).
-
-Now updated to also download epub files if it's available.
-
-If you want just one or two specific books, get the excel file from the folowing link and download just those: https://resource-cms.springernature.com/springer-cms/rest/v1/content/17858272/data/v4
-
-It took about 4 hours to complete the 409 english books (14 GB, both PDF and epub) on my machine.
+Call the main script with a link to a csv file provided by Springer search results. Copy the link address from the "Download search results (CSV)" button or download the file and provide a path to the file as first argument. Select at least one of `--pdf` or `--epub` as format for downloading.
 
 ### Usage in a virtual environment:
 
@@ -20,7 +10,7 @@ It took about 4 hours to complete the 409 english books (14 GB, both PDF and epu
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
-python3 main.py
+python3 main.py <link> [--epub] [--pdf]
 ```
 
 ### On Windows:
@@ -31,31 +21,7 @@ cd .venv/Scripts
 activate.bat
 cd ../..
 pip install -r requirements.txt
-python main.py
+python main.py <link> [--epub] [--pdf]
 ```
-
-### Source:
-* https://group.springernature.com/gp/group/media/press-releases/freely-accessible-textbook-initiative-for-educators-and-students/17858180?utm_medium=social&utm_content=organic&utm_source=facebook&utm_campaign=SpringerNature_&sf232256230=1
-* https://www.springernature.com/gp/librarians/news-events/all-news-articles/industry-news-initiatives/free-access-to-textbooks-for-institutions-affected-by-coronaviru/17855960
-* https://resource-cms.springernature.com/springer-cms/rest/v1/content/17858272/data/v4
 
 Thanks Springer!
-
-## Docker container to do all the work
-
-Considering you cloned the repo in a folder, as:
-```bash
-cd \home\[user]\workspace`
-git clone https://github.com/alexgv99/springer_free_books.git
-cd springer_free_books
-mkdir downloads
-```
-You can run the scripts like that:
-
-```bash
-docker build . -t springer-image
-docker run --rm -v [local_download_folder]:/app/downloads springer-image
-```
-
-and the downloads will be at [local_download_folder]
-

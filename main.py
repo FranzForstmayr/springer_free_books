@@ -1,71 +1,74 @@
 #!/usr/bin/env python
 
 import os
+import sys
 import requests
 import pandas as pd
 from tqdm import tqdm
+import argparse
+from pathvalidate import sanitize_filename
 
-# insert here the folder you want the books to be downloaded:
-folder = os.getcwd() + '/downloads/'
+def main(args):
 
-if not os.path.exists(folder):
-    os.mkdir(folder)
-    
-if not os.path.exists("table.xlsx"):
-    books = pd.read_excel('https://resource-cms.springernature.com/springer-cms/rest/v1/content/17858272/data/v4')
+	fmts = []
+	if args.pdf:
+		fmts += ['pdf']
 
-    # save table:
-    books.to_excel(folder + 'table.xlsx')
-else:
-    books = pd.read_excel('table.xlsx', index_col=None, header=None)  
+	if args.epub:
+		fmts += ['epub'] 
 
-# debug:
-# books = books.head()
+	if len(fmts) == 0:
+		print("No format selected, choose at least one of pdf or epub")
+		sys.exit()
 
-print('Download started.')
 
-for url, title, author, pk_name in tqdm(books[['OpenURL', 'Book Title', 'Author', 'English Package Name']].values):
+	# insert here the folder you want the books to be downloaded:
+	folder = os.getcwd() + '/downloads/'
 
-    new_folder = folder + pk_name + '/'
+	if not os.path.exists(folder):
+		os.mkdir(folder)
+		
+	if not os.path.exists(args.url):
+		books = pd.read_csv(args.url)
 
-    if not os.path.exists(new_folder):
-        os.mkdir(new_folder)
+		# save table:
+		books.to_csv('table.csv')
+	else:
+		books = pd.read_csv('table.csv', index_col=None, header=None)  
 
-    r = requests.get(url) 
-    new_url = r.url
+	# debug:
+	# books = books.head()
 
-    new_url = new_url.replace('/book/','/content/pdf/')
+	print('Download started.')
+	
+	for url, title, author in tqdm(books[['URL', 'Item Title', 'Authors']].values):
 
-    new_url = new_url.replace('%2F','/')
-    new_url = new_url + '.pdf'
+		for fmt in fmts:
+			r = requests.get(url) 
+			new_url = r.url
 
-    final = new_url.split('/')[-1]
-    final = title.replace(',','-').replace('.','').replace('/',' ').replace(':',' ') + ' - ' + author.replace(',','-').replace('.','').replace('/',' ').replace(':',' ') + ' - ' + final
-    output_file = new_folder+final
-    if not os.path.exists(output_file):
-        myfile = requests.get(new_url, allow_redirects=True)
-        try:
-            open(output_file, 'wb').write(myfile.content)
-        except OSError: 
-            print("Error: PDF filename is appears incorrect.")
-        
-        #download epub version too if exists
-        new_url = r.url
+			new_url = url.replace('/book/','/content/%s/' % fmt)
 
-        new_url = new_url.replace('/book/','/download/epub/')
-        new_url = new_url.replace('%2F','/')
-        new_url = new_url + '.epub'
+			new_url = new_url.replace('%2F','/')
+			new_url = new_url + '.%s' % fmt
 
-        final = new_url.split('/')[-1]
-        final = title.replace(',','-').replace('.','').replace('/',' ').replace(':',' ') + ' - ' + author.replace(',','-').replace('.','').replace('/',' ').replace(':',' ') + ' - ' + final
-        output_file = new_folder+final
-        
-        request = requests.get(new_url)
-        if request.status_code == 200:
-            myfile = requests.get(new_url, allow_redirects=True)
-        try:
-            open(output_file, 'wb').write(myfile.content)
-        except OSError: 
-            print("Error: EPUB filename is appears incorrect.")
-            
-print('Download finished.')
+			output_file = title + ' - ' + author + ' - ' + new_url.split('/')[-1]
+			output_file = sanitize_filename(output_file)
+			output_file = folder+output_file
+
+			if not os.path.exists(output_file):
+				myfile = requests.get(new_url, allow_redirects=True)
+				try:
+					open(output_file, 'wb').write(myfile.content)
+				except OSError: 
+					print("Error: filename is appears incorrect.")
+			
+	print('Download finished.')
+
+if __name__ == '__main__':
+	parser = argparse.ArgumentParser("Springer link download helper")
+	parser.add_argument('url', type=str, help='link to springer search result csv file or local csv file')
+	parser.add_argument('--pdf', action='store_true', help='Store pdf file')
+	parser.add_argument('--epub', action='store_true', help='Store epub file')
+	args = parser.parse_args()
+	main(args)
