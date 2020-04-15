@@ -8,6 +8,9 @@ from tqdm import tqdm
 import argparse
 from pathvalidate import sanitize_filename
 
+urls = {'pdf': '/content/pdf/',
+		'epub': '/download/epub/'}
+
 def main(args):
 
 	fmts = []
@@ -46,12 +49,9 @@ def main(args):
 		for fmt in fmts:
 			r = requests.get(url) 
 			new_url = r.url
-
-			new_url = url.replace('/book/','/content/%s/' % fmt)
-
+			new_url = new_url.replace('/book/',urls[fmt])
 			new_url = new_url.replace('%2F','/')
 			new_url = new_url + '.%s' % fmt
-
 			output_file = title + ' - ' + author + ' - ' + new_url.split('/')[-1]
 			output_file = sanitize_filename(output_file)
 			output_file = folder+output_file
